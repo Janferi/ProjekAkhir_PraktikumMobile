@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../db/database_helper.dart';
-import '../models/user_model.dart';
-import '../utils/encryption.dart';
+import '../../db/database_helper.dart';
+import '../../models/user_model.dart';
+import '../../utils/encryption.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});

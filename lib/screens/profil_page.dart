@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:tugasakhir/screens/login_page.dart';
+import 'package:tugasakhir/screens/auth/login_page.dart';
 import 'package:tugasakhir/screens/order_list_page.dart';
 
 const Color kPrimary = Color(0xFF2563EB);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/login_page.dart';
-import 'screens/register_page.dart';
+import 'screens/auth/login_page.dart';
+import 'screens/auth/register_page.dart';
 import 'screens/dashboard_page.dart';
 
 void main() {
