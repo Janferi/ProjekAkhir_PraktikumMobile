@@ -31,7 +31,9 @@ class _MyAppState extends State<MyApp> {
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
     final username = prefs.getString('username') ?? '';
 
-    await Future.delayed(const Duration(milliseconds: 500)); // efek loading kecil
+    await Future.delayed(
+      const Duration(milliseconds: 500),
+    ); // efek loading kecil
 
     setState(() {
       _defaultHome = isLoggedIn
@@ -46,9 +48,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Cek Obat App',
       home: _defaultHome,
-      routes: {
-        '/register': (context) => const RegisterPage(),
-      },
+      routes: {'/register': (context) => const RegisterPage()},
     );
   }
 }

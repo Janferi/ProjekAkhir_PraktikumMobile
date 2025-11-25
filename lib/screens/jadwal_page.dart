@@ -74,13 +74,19 @@ class _JadwalPageState extends State<JadwalPage> {
 
     final int hour = selectedTime!.hour;
     final int minute = selectedTime!.minute;
+    final String waktu =
+        "${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}";
 
     final jadwalData = {
-      "nama_obat": widget.obat["nama_obat"],
-      "jam":
-          "${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}",
+      "namaObat": widget.obat["nama_obat"],
+      "nama_obat": widget.obat["nama_obat"], // untuk backward compatibility
+      "waktu": waktu,
+      "jam": waktu, // untuk backward compatibility
+      "jumlah": widget.obat["dosis"] ?? "1",
+      "satuan": "tablet",
+      "frekuensi": "Harian",
       "tanggal_buat": DateTime.now().toIso8601String(),
-      "status": "Menunggu",
+      "status": "Aktif",
       "link_gambar": widget.obat['link_gambar'],
     };
 
@@ -125,7 +131,8 @@ class _JadwalPageState extends State<JadwalPage> {
       ),
     );
 
-    Navigator.pop(context);
+    // Kembali ke dashboard (menutup semua halaman di atas dashboard)
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override

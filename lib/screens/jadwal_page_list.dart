@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tugasakhir/db/database_helper.dart';
+import 'package:tugasakhir/models/my_medicine_model.dart';
 import 'detail_jadwal_page.dart';
+import 'jadwal_page.dart';
 
 class JadwalTersimpanPage extends StatefulWidget {
   const JadwalTersimpanPage({super.key});
@@ -29,6 +32,160 @@ class _JadwalTersimpanPageState extends State<JadwalTersimpanPage> {
             .toList();
       });
     }
+  }
+
+  Future<void> _showPilihObatDialog() async {
+    final dbHelper = DatabaseHelper.instance;
+    final medicines = await dbHelper.getMyMedicines();
+
+    if (medicines.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Belum ada obat. Tambahkan obat terlebih dahulu.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Header
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Icon(Icons.medication_rounded, color: Color(0xFF3B82F6)),
+                    SizedBox(width: 12),
+                    Text(
+                      'Pilih Obat',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              // List obat
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: medicines.length,
+                  itemBuilder: (context, index) {
+                    final medicine = medicines[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: const Color(0xFF3B82F6).withOpacity(0.2),
+                        ),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(12),
+                        leading: Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: medicine.linkGambar != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(
+                                    medicine.linkGambar!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.medical_services_rounded,
+                                      color: Color(0xFF3B82F6),
+                                    ),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.medical_services_rounded,
+                                  color: Color(0xFF3B82F6),
+                                ),
+                        ),
+                        title: Text(
+                          medicine.namaObat,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1F2937),
+                          ),
+                        ),
+                        subtitle: Text(
+                          'Stok: ${medicine.jumlahStok}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 16,
+                          color: Color(0xFF3B82F6),
+                        ),
+                        onTap: () async {
+                          Navigator.pop(context);
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => JadwalPage(
+                                obat: {
+                                  'nama_obat': medicine.namaObat,
+                                  'link_gambar': medicine.linkGambar,
+                                  'dosis': medicine.dosis,
+                                },
+                              ),
+                            ),
+                          );
+                          _loadJadwal();
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -97,6 +254,20 @@ class _JadwalTersimpanPageState extends State<JadwalTersimpanPage> {
                 ),
               ],
             ),
+      floatingActionButton: jadwalList.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: _showPilihObatDialog,
+              backgroundColor: const Color(0xFF3B82F6),
+              icon: const Icon(Icons.add_rounded, color: Colors.white),
+              label: const Text(
+                'Tambah Jadwal',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            )
+          : null,
     );
   }
 
@@ -150,9 +321,7 @@ class _JadwalTersimpanPageState extends State<JadwalTersimpanPage> {
                 ],
               ),
               child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context); // Kembali ke beranda
-                },
+                onPressed: _showPilihObatDialog,
                 icon: Icon(Icons.add_rounded, size: 22),
                 label: Text(
                   'Buat Jadwal Pertama',
@@ -175,6 +344,8 @@ class _JadwalTersimpanPageState extends State<JadwalTersimpanPage> {
   }
 
   Widget _buildJadwalCard(Map<String, dynamic> jadwal, BuildContext context) {
+    final String? linkGambar = jadwal['link_gambar'] as String?;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -204,18 +375,43 @@ class _JadwalTersimpanPageState extends State<JadwalTersimpanPage> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Icon dengan background
+                // Gambar obat atau icon dengan background
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: Color(0xFFEFF6FF),
+                    color: linkGambar != null && linkGambar.isNotEmpty
+                        ? Colors.grey[200]
+                        : Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(12),
+                    gradient: linkGambar == null || linkGambar.isEmpty
+                        ? LinearGradient(
+                            colors: [Color(0xFF3B82F6), Color(0xFF60A5FA)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
                   ),
-                  child: Icon(
-                    Icons.medication_rounded,
-                    color: Color(0xFF3B82F6),
-                    size: 24,
-                  ),
+                  child: linkGambar != null && linkGambar.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            linkGambar,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.medication_rounded,
+                                color: Color(0xFF3B82F6),
+                                size: 24,
+                              );
+                            },
+                          ),
+                        )
+                      : Icon(
+                          Icons.medication_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                 ),
                 const SizedBox(width: 16),
                 // Info jadwal
