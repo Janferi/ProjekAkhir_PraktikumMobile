@@ -223,7 +223,7 @@ class _MyMedicinesListPageState extends State<MyMedicinesListPage> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          medicine.sumber ?? 'Tambah Manual',
+                          medicine.sumber,
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,

@@ -109,11 +109,13 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  // Cek apakah obat sudah boleh diminum (berdasarkan jadwal terakhir)
   Future<bool> _canTakeMedicine(String namaObat, String waktu) async {
     final prefs = await SharedPreferences.getInstance();
     final key = 'last_taken_${namaObat}_$waktu';
     final lastTakenStr = prefs.getString(key);
 
+    // Jika belum pernah minum, boleh
     if (lastTakenStr == null) return true;
 
     final now = DateTime.now();
@@ -141,12 +143,14 @@ class _DashboardPageState extends State<DashboardPage> {
     return now.isAfter(nextSchedule) || now.isAtSameMomentAs(nextSchedule);
   }
 
+  // Simpan waktu terakhir minum obat
   Future<void> _markMedicineAsTaken(String namaObat, String waktu) async {
     final prefs = await SharedPreferences.getInstance();
     final key = 'last_taken_${namaObat}_$waktu';
     await prefs.setString(key, DateTime.now().toIso8601String());
   }
 
+  // Tandai obat sudah diminum + kurangi stok
   Future<void> _tandaiSudahMinum(Map<String, dynamic> jadwal, int index) async {
     final String namaObat = jadwal['namaObat'] ?? jadwal['nama_obat'] ?? '';
     final String waktu = jadwal['waktu'] ?? '';
@@ -172,12 +176,14 @@ class _DashboardPageState extends State<DashboardPage> {
       return;
     }
 
+    // Cari obat di database
     final medicines = await _dbHelper.getMyMedicines();
     final medicine = medicines.firstWhere(
       (m) => m.namaObat.toLowerCase() == namaObat.toLowerCase(),
       orElse: () => throw Exception('Obat tidak ditemukan'),
     );
 
+    // Cek stok obat
     if (medicine.jumlahStok <= 0) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -197,6 +203,7 @@ class _DashboardPageState extends State<DashboardPage> {
       return;
     }
 
+    // Kurangi stok obat
     final updatedMedicine = MyMedicine(
       id: medicine.id,
       namaObat: medicine.namaObat,
@@ -211,11 +218,13 @@ class _DashboardPageState extends State<DashboardPage> {
       tanggalDitambahkan: medicine.tanggalDitambahkan,
     );
 
+    // Update obat di database
     await _dbHelper.updateMyMedicine(medicine.id!, updatedMedicine);
 
-    // Tandai sudah diminum
+    // Tandai sudah diminum di SharedPreferences
     await _markMedicineAsTaken(namaObat, waktu);
 
+    // Reload data obat
     await _loadMyMedicines();
 
     // Refresh UI untuk update status tombol
@@ -223,6 +232,7 @@ class _DashboardPageState extends State<DashboardPage> {
       setState(() {});
     }
 
+    // Tampilkan notifikasi sukses
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

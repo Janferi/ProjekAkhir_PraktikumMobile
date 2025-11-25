@@ -26,15 +26,17 @@ class _MyAppState extends State<MyApp> {
     _checkLoginStatus();
   }
 
+  // Cek status login saat app pertama kali dibuka
   Future<void> _checkLoginStatus() async {
+    // Ambil data login dari SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
     final username = prefs.getString('username') ?? '';
 
-    await Future.delayed(
-      const Duration(milliseconds: 500),
-    ); // efek loading kecil
+    // Delay sebentar untuk efek loading
+    await Future.delayed(const Duration(milliseconds: 500));
 
+    // Update tampilan: langsung ke Dashboard jika sudah login, ke Login jika belum
     setState(() {
       _defaultHome = isLoggedIn
           ? DashboardPage(username: username)

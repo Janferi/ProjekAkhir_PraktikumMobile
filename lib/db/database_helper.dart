@@ -219,10 +219,13 @@ class DatabaseHelper {
   }
 
   // ===== ORDER METHODS =====
+  // Buat order baru + insert order items
   Future<int> createOrder(Order order, List<CartItem> items) async {
     final db = await database;
+    // Insert order dulu, dapat ID-nya
     final orderId = await db.insert('orders', order.toMap());
 
+    // Insert semua order items dengan order_id yang baru
     for (var item in items) {
       final orderItem = OrderItem(
         orderId: orderId,

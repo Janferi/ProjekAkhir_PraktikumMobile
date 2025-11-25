@@ -30,17 +30,23 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
+  // Update jumlah item di cart
   Future<void> _updateQuantity(CartItem item, int newQuantity) async {
+    // Jika jumlah <= 0, hapus item
     if (newQuantity <= 0) {
       await _removeItem(item);
       return;
     }
 
+    // Update jumlah di database
     await _dbHelper.updateCartItem(item.id!, newQuantity);
+    // Reload data cart
     await _loadCartItems();
   }
 
+  // Hapus item dari cart
   Future<void> _removeItem(CartItem item) async {
+    // Konfirmasi dulu sebelum hapus
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -60,6 +66,7 @@ class _CartPageState extends State<CartPage> {
       ),
     );
 
+    // Jika user konfirmasi, hapus dari database
     if (confirm == true) {
       await _dbHelper.deleteCartItem(item.id!);
       await _loadCartItems();
@@ -78,6 +85,7 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
+  // Hitung total harga semua item
   double get _totalPrice {
     return _cartItems.fold(0, (sum, item) => sum + item.subtotal);
   }

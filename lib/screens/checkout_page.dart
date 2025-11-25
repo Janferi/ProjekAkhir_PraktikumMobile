@@ -35,12 +35,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
     super.dispose();
   }
 
+  // Proses checkout dan buat order
   Future<void> _processCheckout() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isProcessing = true);
 
     try {
+      // Buat object Order baru
       final order = Order(
         tanggal: DateTime.now().toIso8601String(),
         totalHarga: widget.totalPrice,
@@ -50,9 +52,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
         nomorTelepon: _nomorTeleponController.text,
       );
 
+      // Insert order + order items ke database (dalam 1 transaction)
       final orderId = await _dbHelper.createOrder(order, widget.cartItems);
 
-      // Tambahkan obat ke my_medicines
+      // Tambahkan semua obat dari cart ke my_medicines
       for (var item in widget.cartItems) {
         final medicine = MyMedicine(
           namaObat: item.namaObat,
@@ -69,9 +72,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
         await _dbHelper.insertMyMedicine(medicine);
       }
 
+      // Hapus semua item di cart
       await _dbHelper.clearCart();
 
       if (mounted) {
+        // Navigate ke halaman sukses
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => OrderSuccessPage(orderId: orderId)),

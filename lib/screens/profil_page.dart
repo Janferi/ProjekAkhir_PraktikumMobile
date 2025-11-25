@@ -30,29 +30,25 @@ class _ProfilPageState extends State<ProfilPage> {
     _loadProfileImage();
   }
 
+  // Load foto profil dari SharedPreferences
   Future<void> _loadProfileImage() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final key = 'profile_image_${widget.username}';
       final savedPath = prefs.getString(key);
 
-      print('Loading profile image for ${widget.username}');
-      print('Saved path: $savedPath');
-
+      // Cek apakah ada foto profil yang tersimpan
       if (savedPath != null && savedPath.isNotEmpty) {
         final file = File(savedPath);
-        final exists = await file.exists();
-        print('File exists: $exists');
-
-        if (exists) {
+        // Cek apakah file masih ada
+        if (await file.exists()) {
           if (mounted) {
             setState(() {
               _profileImagePath = savedPath;
             });
           }
-          print('Profile image loaded successfully');
         } else {
-          print('File does not exist, clearing saved path');
+          // File tidak ada, hapus dari SharedPreferences
           await prefs.remove(key);
           if (mounted) {
             setState(() {
@@ -60,16 +56,8 @@ class _ProfilPageState extends State<ProfilPage> {
             });
           }
         }
-      } else {
-        print('No saved path found');
-        if (mounted) {
-          setState(() {
-            _profileImagePath = null;
-          });
-        }
       }
     } catch (e) {
-      print('Error loading profile image: $e');
       if (mounted) {
         setState(() {
           _profileImagePath = null;
@@ -78,45 +66,36 @@ class _ProfilPageState extends State<ProfilPage> {
     }
   }
 
+  // Simpan foto profil ke storage permanent
   Future<void> _saveProfileImage(String path) async {
     try {
-      print('Saving image from path: $path');
-
       // Dapatkan direktori aplikasi permanent
       final directory = await getApplicationDocumentsDirectory();
-      print('App directory: ${directory.path}');
 
+      // Buat nama file unik
       final fileName =
           'profile_${widget.username}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final permanentPath = '${directory.path}/$fileName';
-      print('Permanent path: $permanentPath');
 
-      // Copy file ke lokasi permanent
+      // Copy file dari temporary ke permanent storage
       final File sourceFile = File(path);
-
-      // Cek apakah file source ada
       if (!await sourceFile.exists()) {
-        print('Source file does not exist!');
         throw Exception('Source file does not exist');
       }
-
       await sourceFile.copy(permanentPath);
-      print('File copied successfully');
 
       // Simpan path permanent ke SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final key = 'profile_image_${widget.username}';
       await prefs.setString(key, permanentPath);
-      print('Path saved to SharedPreferences with key: $key');
 
+      // Update UI
       if (mounted) {
         setState(() {
           _profileImagePath = permanentPath;
         });
-        print('State updated with new path');
       }
     } catch (e) {
-      print('Error saving profile image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -344,10 +323,11 @@ class _ProfilPageState extends State<ProfilPage> {
     );
   }
 
+  // Logout user dan hapus data login dari SharedPreferences
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Simpan data yang perlu dipertahankan sebelum clear
+    // Simpan data yang perlu dipertahankan (jadwal obat, foto profil, tracking minum)
     final allKeys = prefs.getKeys();
     final Map<String, dynamic> dataToKeep = {};
 

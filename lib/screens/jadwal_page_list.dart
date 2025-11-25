@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tugasakhir/db/database_helper.dart';
-import 'package:tugasakhir/models/my_medicine_model.dart';
 import 'detail_jadwal_page.dart';
 import 'jadwal_page.dart';
 

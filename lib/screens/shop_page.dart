@@ -31,17 +31,21 @@ class _ShopPageState extends State<ShopPage> {
     _fetchDataObat();
   }
 
+  // Fetch data obat dari API
   Future<void> _fetchDataObat() async {
     setState(() => _isLoading = true);
     try {
+      // Hit API untuk ambil data obat
       final response = await http.get(
         Uri.parse('https://apimobelmedicine.vercel.app/data_obat.json'),
       );
 
       if (response.statusCode == 200) {
+        // Parse JSON response
         final data = json.decode(response.body);
         final List<dynamic> listObat = data['data_obat'];
 
+        // Update state dengan data obat
         setState(() {
           _allObat = listObat;
           _filteredObat = listObat;
@@ -60,12 +64,15 @@ class _ShopPageState extends State<ShopPage> {
     }
   }
 
+  // Fungsi search obat berdasarkan query & filter kategori
   void _searchObat(String query) {
+    // Filter berdasarkan nama obat
     var hasil = _allObat.where((obat) {
       final nama = obat['nama_obat'].toString().toLowerCase();
       return nama.contains(query.toLowerCase());
     });
 
+    // Filter berdasarkan kategori jika bukan "Semua"
     if (_selectedFilter != 'Semua') {
       hasil = hasil.where((obat) {
         final kategori = obat['kategori']?.toString() ?? '';

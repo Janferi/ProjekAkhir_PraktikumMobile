@@ -26,17 +26,22 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       try {
+        // Ambil input email dan password
         final email = _email.text.trim();
+        // Enkripsi password dengan SHA-256
         final password = encryptPassword(_password.text);
 
+        // Cek ke database apakah user ada
         final user = await DatabaseHelper.instance.getUser(email, password);
 
         if (user != null) {
+          // Login berhasil - simpan status login ke SharedPreferences
           final prefs = await SharedPreferences.getInstance();
           await prefs.setBool('isLoggedIn', true);
           await prefs.setString('username', user.username);
 
           if (mounted) {
+            // Tampilkan notifikasi sukses
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Row(
@@ -56,6 +61,7 @@ class _LoginPageState extends State<LoginPage> {
 
             await Future.delayed(const Duration(milliseconds: 800));
 
+            // Navigate ke Dashboard
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -64,6 +70,7 @@ class _LoginPageState extends State<LoginPage> {
             );
           }
         } else {
+          // Login gagal - email/password salah
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -128,12 +135,12 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildHeader() {
     return Column(
       children: [
-        // Logo/Icon Remedify dengan warna kalem
+        // Logo Remedify dengan gambar
         Container(
           width: 120,
           height: 120,
           decoration: BoxDecoration(
-            color: Color(0xFFEFF6FF), // Biru sangat soft
+            color: Colors.white,
             shape: BoxShape.circle,
             border: Border.all(
               color: Color(0xFFDBEAFE), // Border biru light
@@ -147,10 +154,11 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ],
           ),
-          child: Icon(
-            Icons.medication_liquid_outlined,
-            size: 50,
-            color: Color(0xFF3B82F6), // Biru medium yang kalem
+          child: ClipOval(
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Image.asset('assets/img/medical.png', fit: BoxFit.contain),
+            ),
           ),
         ),
         const SizedBox(height: 24),

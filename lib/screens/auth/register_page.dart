@@ -25,15 +25,20 @@ class _RegisterPageState extends State<RegisterPage> {
       });
 
       try {
+        // Buat object UserModel dengan password yang sudah dienkripsi
         final user = UserModel(
           username: _username.text.trim(),
           email: _email.text.trim(),
-          password: encryptPassword(_password.text),
+          password: encryptPassword(
+            _password.text,
+          ), // Enkripsi password dengan SHA-256
         );
 
+        // Insert user baru ke database
         await DatabaseHelper.instance.insertUser(user);
 
         if (mounted) {
+          // Tampilkan notifikasi sukses
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('✅ Akun berhasil dibuat! Silakan login.'),
@@ -46,9 +51,11 @@ class _RegisterPageState extends State<RegisterPage> {
           );
 
           await Future.delayed(const Duration(milliseconds: 800));
+          // Kembali ke halaman login
           Navigator.pop(context);
         }
       } catch (e) {
+        // Jika error (biasanya email sudah terdaftar)
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -155,29 +162,27 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _buildHeader() {
     return Column(
       children: [
-        // Icon dengan gradient
+        // Logo Remedify dengan gambar
         Container(
-          width: 80,
-          height: 80,
+          width: 110,
+          height: 110,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF3B82F6), Color(0xFF60A5FA)],
-            ),
+            color: Colors.white,
             shape: BoxShape.circle,
+            border: Border.all(color: Color(0xFFDBEAFE), width: 2),
             boxShadow: [
               BoxShadow(
-                color: Color(0xFF3B82F6).withOpacity(0.3),
+                color: Color(0xFF3B82F6).withOpacity(0.15),
                 blurRadius: 12,
                 offset: Offset(0, 4),
               ),
             ],
           ),
-          child: Icon(
-            Icons.person_add_alt_1_rounded,
-            size: 40,
-            color: Colors.white,
+          child: ClipOval(
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Image.asset('assets/img/medical.png', fit: BoxFit.contain),
+            ),
           ),
         ),
         const SizedBox(height: 20),

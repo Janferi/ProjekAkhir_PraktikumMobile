@@ -59,6 +59,7 @@ class _JadwalPageState extends State<JadwalPage> {
     }
   }
 
+  // Simpan jadwal minum obat ke SharedPreferences + set notifikasi
   Future<void> _simpanJadwal() async {
     if (selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -69,19 +70,22 @@ class _JadwalPageState extends State<JadwalPage> {
       return;
     }
 
+    // Ambil data jadwal yang sudah ada
     final prefs = await SharedPreferences.getInstance();
     List<String> jadwalList = prefs.getStringList('saved_jadwal') ?? [];
 
+    // Format waktu ke HH:mm
     final int hour = selectedTime!.hour;
     final int minute = selectedTime!.minute;
     final String waktu =
         "${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}";
 
+    // Buat object jadwal
     final jadwalData = {
       "namaObat": widget.obat["nama_obat"],
-      "nama_obat": widget.obat["nama_obat"], // untuk backward compatibility
+      "nama_obat": widget.obat["nama_obat"],
       "waktu": waktu,
-      "jam": waktu, // untuk backward compatibility
+      "jam": waktu,
       "jumlah": widget.obat["dosis"] ?? "1",
       "satuan": "tablet",
       "frekuensi": "Harian",
@@ -90,10 +94,11 @@ class _JadwalPageState extends State<JadwalPage> {
       "link_gambar": widget.obat['link_gambar'],
     };
 
+    // Simpan ke SharedPreferences
     jadwalList.add(jsonEncode(jadwalData));
     await prefs.setStringList('saved_jadwal', jadwalList);
 
-    // TAMPILKAN NOTIFIKASI INSTANT
+    // Tampilkan notifikasi instant bahwa jadwal berhasil dibuat
     await _notificationService.showInstantNotification(
       title: '✅ Jadwal Berhasil Dibuat!',
       body:
@@ -101,7 +106,7 @@ class _JadwalPageState extends State<JadwalPage> {
       payload: 'jadwal_created',
     );
 
-    // SCHEDULE NOTIFIKASI UNTUK WAKTU YANG DIPILIH
+    // Schedule notifikasi untuk waktu yang dipilih
     final now = DateTime.now();
     DateTime scheduledDateTime = DateTime(
       now.year,
@@ -116,6 +121,7 @@ class _JadwalPageState extends State<JadwalPage> {
       scheduledDateTime = scheduledDateTime.add(const Duration(days: 1));
     }
 
+    // Set notifikasi scheduled
     await _notificationService.scheduleNotification(
       id: scheduledDateTime.millisecondsSinceEpoch ~/ 1000,
       title: '💊 Waktunya Minum Obat!',
@@ -124,6 +130,7 @@ class _JadwalPageState extends State<JadwalPage> {
       payload: 'reminder_${widget.obat["nama_obat"]}',
     );
 
+    // Tampilkan notifikasi sukses
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("Jadwal berhasil disimpan!"),
@@ -131,7 +138,7 @@ class _JadwalPageState extends State<JadwalPage> {
       ),
     );
 
-    // Kembali ke dashboard (menutup semua halaman di atas dashboard)
+    // Kembali ke dashboard
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 

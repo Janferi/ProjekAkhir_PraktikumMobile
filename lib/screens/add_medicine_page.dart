@@ -55,6 +55,7 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
     super.dispose();
   }
 
+  // Ambil gambar dari kamera atau galeri
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -166,6 +167,7 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
     }
   }
 
+  // Simpan data obat ke database
   Future<void> _saveMedicine() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -193,10 +195,11 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
     setState(() => _isLoading = true);
 
     try {
-      // Gabungkan frekuensi dan waktu makan
+      // Gabungkan frekuensi dan waktu makan jadi dosis
       final jadwalMakan = '$_selectedFrekuensi $_selectedWaktuMakan'
           .toLowerCase();
 
+      // Buat object MyMedicine
       final medicine = MyMedicine(
         namaObat: _namaController.text.trim(),
         linkGambar: _imagePath,
@@ -212,10 +215,13 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
         tanggalDitambahkan: DateTime.now().toIso8601String(),
       );
 
+      // Insert ke database
       await _dbHelper.insertMyMedicine(medicine);
 
       if (mounted) {
+        // Kembali ke halaman sebelumnya
         Navigator.pop(context, true);
+        // Tampilkan notifikasi sukses
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Row(
@@ -261,300 +267,303 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(screenWidth * 0.05), // Responsive padding
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image Upload Section - Responsive
-              Container(
-                width: double.infinity,
-                height: screenHeight * 0.25, // 25% dari tinggi layar
-                constraints: const BoxConstraints(
-                  minHeight: 180,
-                  maxHeight: 250,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF3B82F6).withOpacity(0.1),
-                      const Color(0xFF60A5FA).withOpacity(0.05),
-                    ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(screenWidth * 0.05), // Responsive padding
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image Upload Section - Responsive
+                Container(
+                  width: double.infinity,
+                  height: screenHeight * 0.25, // 25% dari tinggi layar
+                  constraints: const BoxConstraints(
+                    minHeight: 180,
+                    maxHeight: 250,
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFF3B82F6).withOpacity(0.2),
-                    width: 2,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFF3B82F6).withOpacity(0.1),
+                        const Color(0xFF60A5FA).withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF3B82F6).withOpacity(0.2),
+                      width: 2,
+                    ),
                   ),
-                ),
-                child: _selectedImage != null
-                    ? Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(18),
-                            child: Image.file(
-                              _selectedImage!,
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit.cover,
+                  child: _selectedImage != null
+                      ? Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(18),
+                              child: Image.file(
+                                _selectedImage!,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                          ),
-                          Positioned(
-                            top: 12,
-                            right: 12,
-                            child: Row(
+                            Positioned(
+                              top: 12,
+                              right: 12,
+                              child: Row(
+                                children: [
+                                  _buildImageActionButton(
+                                    icon: Icons.edit_rounded,
+                                    onTap: _showImageSourceDialog,
+                                    color: const Color(0xFF3B82F6),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  _buildImageActionButton(
+                                    icon: Icons.close_rounded,
+                                    onTap: () => setState(() {
+                                      _selectedImage = null;
+                                      _imagePath = null;
+                                    }),
+                                    color: Colors.red,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _showImageSourceDialog,
+                            borderRadius: BorderRadius.circular(18),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                _buildImageActionButton(
-                                  icon: Icons.edit_rounded,
-                                  onTap: _showImageSourceDialog,
-                                  color: const Color(0xFF3B82F6),
+                                Container(
+                                  padding: EdgeInsets.all(screenWidth * 0.05),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF3B82F6,
+                                    ).withOpacity(0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.add_photo_alternate_rounded,
+                                    size: screenWidth * 0.12, // Responsive icon
+                                    color: const Color(0xFF3B82F6),
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
-                                _buildImageActionButton(
-                                  icon: Icons.close_rounded,
-                                  onTap: () => setState(() {
-                                    _selectedImage = null;
-                                    _imagePath = null;
-                                  }),
-                                  color: Colors.red,
+                                SizedBox(height: screenHeight * 0.02),
+                                Text(
+                                  'Tambah Foto Obat',
+                                  style: TextStyle(
+                                    fontSize: screenWidth * 0.04,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF3B82F6),
+                                  ),
+                                ),
+                                SizedBox(height: screenHeight * 0.008),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Text(
+                                    'Ambil dari kamera atau galeri',
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.032,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
+                        ),
+                ),
+                SizedBox(height: screenHeight * 0.03),
+
+                // Info Section
+                Text(
+                  'Informasi Obat',
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.05,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF1F2937),
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.005),
+                Text(
+                  'Isi data obat dengan lengkap',
+                  style: TextStyle(
+                    fontSize: screenWidth * 0.035,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.025),
+
+                // Nama Obat (Wajib)
+                _buildModernTextField(
+                  controller: _namaController,
+                  label: 'Nama Obat',
+                  hint: 'Contoh: Paracetamol 500mg',
+                  icon: Icons.medication_rounded,
+                  isRequired: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Nama obat wajib diisi';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: screenHeight * 0.02),
+
+                // Row for Stok and Jenis
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Jika layar terlalu kecil, stack vertical
+                    if (constraints.maxWidth < 350) {
+                      return Column(
+                        children: [
+                          _buildModernTextField(
+                            controller: _stokController,
+                            label: 'Jumlah Stok',
+                            hint: '0',
+                            icon: Icons.inventory_2_rounded,
+                            isRequired: true,
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Stok wajib diisi';
+                              }
+                              if (int.tryParse(value) == null ||
+                                  int.parse(value) < 0) {
+                                return 'Harus angka positif';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: screenHeight * 0.02),
+                          _buildModernDropdown(),
                         ],
-                      )
-                    : Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: _showImageSourceDialog,
-                          borderRadius: BorderRadius.circular(18),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(screenWidth * 0.05),
-                                decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF3B82F6,
-                                  ).withOpacity(0.15),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.add_photo_alternate_rounded,
-                                  size: screenWidth * 0.12, // Responsive icon
-                                  color: const Color(0xFF3B82F6),
-                                ),
-                              ),
-                              SizedBox(height: screenHeight * 0.02),
-                              Text(
-                                'Tambah Foto Obat',
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.04,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF3B82F6),
-                                ),
-                              ),
-                              SizedBox(height: screenHeight * 0.008),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                child: Text(
-                                  'Ambil dari kamera atau galeri',
-                                  style: TextStyle(
-                                    fontSize: screenWidth * 0.032,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
+                      );
+                    }
+                    // Layar cukup lebar, gunakan row
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: _buildModernTextField(
+                            controller: _stokController,
+                            label: 'Jumlah Stok',
+                            hint: '0',
+                            icon: Icons.inventory_2_rounded,
+                            isRequired: true,
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Stok wajib diisi';
+                              }
+                              if (int.tryParse(value) == null ||
+                                  int.parse(value) < 0) {
+                                return 'Harus angka positif';
+                              }
+                              return null;
+                            },
                           ),
                         ),
-                      ),
-              ),
-              SizedBox(height: screenHeight * 0.03),
-
-              // Info Section
-              Text(
-                'Informasi Obat',
-                style: TextStyle(
-                  fontSize: screenWidth * 0.05,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF1F2937),
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.005),
-              Text(
-                'Isi data obat dengan lengkap',
-                style: TextStyle(
-                  fontSize: screenWidth * 0.035,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.025),
-
-              // Nama Obat (Wajib)
-              _buildModernTextField(
-                controller: _namaController,
-                label: 'Nama Obat',
-                hint: 'Contoh: Paracetamol 500mg',
-                icon: Icons.medication_rounded,
-                isRequired: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama obat wajib diisi';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: screenHeight * 0.02),
-
-              // Row for Stok and Jenis
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  // Jika layar terlalu kecil, stack vertical
-                  if (constraints.maxWidth < 350) {
-                    return Column(
-                      children: [
-                        _buildModernTextField(
-                          controller: _stokController,
-                          label: 'Jumlah Stok',
-                          hint: '0',
-                          icon: Icons.inventory_2_rounded,
-                          isRequired: true,
-                          keyboardType: TextInputType.number,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Stok wajib diisi';
-                            }
-                            if (int.tryParse(value) == null ||
-                                int.parse(value) < 0) {
-                              return 'Harus angka positif';
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        _buildModernDropdown(),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildModernDropdown()),
                       ],
                     );
-                  }
-                  // Layar cukup lebar, gunakan row
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: _buildModernTextField(
-                          controller: _stokController,
-                          label: 'Jumlah Stok',
-                          hint: '0',
-                          icon: Icons.inventory_2_rounded,
-                          isRequired: true,
-                          keyboardType: TextInputType.number,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Stok wajib diisi';
-                            }
-                            if (int.tryParse(value) == null ||
-                                int.parse(value) < 0) {
-                              return 'Harus angka positif';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(child: _buildModernDropdown()),
-                    ],
-                  );
-                },
-              ),
-              SizedBox(height: screenHeight * 0.02),
-
-              // Tanggal Kadaluarsa
-              _buildDatePicker(),
-              SizedBox(height: screenHeight * 0.02),
-
-              // Jadwal Makan - Frekuensi
-              _buildScheduleDropdown(
-                label: 'Frekuensi Minum Obat',
-                value: _selectedFrekuensi,
-                items: _frekuensiList,
-                icon: Icons.access_time_rounded,
-                hint: 'Pilih frekuensi',
-                onChanged: (value) {
-                  setState(() {
-                    _selectedFrekuensi = value;
-                  });
-                },
-              ),
-              SizedBox(height: screenHeight * 0.02),
-
-              // Jadwal Makan - Waktu
-              _buildScheduleDropdown(
-                label: 'Waktu Konsumsi',
-                value: _selectedWaktuMakan,
-                items: _waktuMakanList,
-                icon: Icons.restaurant_rounded,
-                hint: 'Pilih waktu',
-                onChanged: (value) {
-                  setState(() {
-                    _selectedWaktuMakan = value;
-                  });
-                },
-              ),
-              SizedBox(height: screenHeight * 0.02),
-
-              // Deskripsi
-              _buildModernTextField(
-                controller: _deskripsiController,
-                label: 'Catatan',
-                hint: 'Tambahkan catatan penting tentang obat ini...',
-                icon: Icons.note_alt_rounded,
-                maxLines: 3,
-              ),
-
-              SizedBox(height: screenHeight * 0.04),
-
-              // Button Simpan
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _saveMedicine,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Simpan Obat',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                  },
                 ),
-              ),
-            ],
+                SizedBox(height: screenHeight * 0.02),
+
+                // Tanggal Kadaluarsa
+                _buildDatePicker(),
+                SizedBox(height: screenHeight * 0.02),
+
+                // Jadwal Makan - Frekuensi
+                _buildScheduleDropdown(
+                  label: 'Frekuensi Minum Obat',
+                  value: _selectedFrekuensi,
+                  items: _frekuensiList,
+                  icon: Icons.access_time_rounded,
+                  hint: 'Pilih frekuensi',
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedFrekuensi = value;
+                    });
+                  },
+                ),
+                SizedBox(height: screenHeight * 0.02),
+
+                // Jadwal Makan - Waktu
+                _buildScheduleDropdown(
+                  label: 'Waktu Konsumsi',
+                  value: _selectedWaktuMakan,
+                  items: _waktuMakanList,
+                  icon: Icons.restaurant_rounded,
+                  hint: 'Pilih waktu',
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedWaktuMakan = value;
+                    });
+                  },
+                ),
+                SizedBox(height: screenHeight * 0.02),
+
+                // Deskripsi
+                _buildModernTextField(
+                  controller: _deskripsiController,
+                  label: 'Catatan',
+                  hint: 'Tambahkan catatan penting tentang obat ini...',
+                  icon: Icons.note_alt_rounded,
+                  maxLines: 3,
+                ),
+
+                SizedBox(height: screenHeight * 0.04),
+
+                // Button Simpan
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _saveMedicine,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF3B82F6),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Simpan Obat',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.02), // Extra space di bawah
+              ],
+            ),
           ),
         ),
       ),
@@ -752,7 +761,7 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            // const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -795,12 +804,15 @@ class _AddMedicinePageState extends State<AddMedicinePage> {
                         child: Text(
                           jenis,
                           style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                     )
                     .toList(),
                 onChanged: (value) =>
                     setState(() => _selectedJenisObat = value),
+                isExpanded: true,
               ),
             ),
           ],
